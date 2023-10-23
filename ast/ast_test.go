@@ -8,20 +8,23 @@ func TestStatement(t *testing.T) {
 	Statement(&QueryStatement{}).isStatement()
 	Statement(&CreateDatabase{}).isStatement()
 	Statement(&CreateTable{}).isStatement()
-	Statement(&CreateView{}).isStatement()
-	Statement(&CreateIndex{}).isStatement()
-	Statement(&CreateSequence{}).isStatement()
-	Statement(&CreateRole{}).isStatement()
 	Statement(&AlterTable{}).isStatement()
-	Statement(&AlterIndex{}).isStatement()
 	Statement(&DropTable{}).isStatement()
+	Statement(&CreateIndex{}).isStatement()
+	Statement(&AlterIndex{}).isStatement()
 	Statement(&DropIndex{}).isStatement()
+	Statement(&CreateView{}).isStatement()
+	Statement(&CreateChangeStream{}).isStatement()
+	Statement(&AlterChangeStream{}).isStatement()
+	Statement(&DropChangeStream{}).isStatement()
+	Statement(&CreateRole{}).isStatement()
 	Statement(&DropRole{}).isStatement()
+	Statement(&Grant{}).isStatement()
+	Statement(&Revoke{}).isStatement()
+	Statement(&CreateSequence{}).isStatement()
 	Statement(&Insert{}).isStatement()
 	Statement(&Delete{}).isStatement()
 	Statement(&Update{}).isStatement()
-	Statement(&Grant{}).isStatement()
-	Statement(&Revoke{}).isStatement()
 }
 
 func TestQueryExpr(t *testing.T) {
@@ -123,33 +126,49 @@ func TestStringValue(t *testing.T) {
 func TestDDL(t *testing.T) {
 	DDL(&CreateDatabase{}).isDDL()
 	DDL(&CreateTable{}).isDDL()
-	DDL(&CreateIndex{}).isDDL()
-	DDL(&CreateSequence{}).isDDL()
-	DDL(&CreateView{}).isDDL()
 	DDL(&AlterTable{}).isDDL()
 	DDL(&DropTable{}).isDDL()
 	DDL(&CreateIndex{}).isDDL()
 	DDL(&AlterIndex{}).isDDL()
 	DDL(&DropIndex{}).isDDL()
+	DDL(&CreateView{}).isDDL()
+	DDL(&CreateChangeStream{}).isDDL()
+	DDL(&AlterChangeStream{}).isDDL()
+	DDL(&DropChangeStream{}).isDDL()
 	DDL(&CreateRole{}).isDDL()
 	DDL(&DropRole{}).isDDL()
 	DDL(&Grant{}).isDDL()
 	DDL(&Revoke{}).isDDL()
+	DDL(&CreateSequence{}).isDDL()
 }
 
 func TestConstraint(t *testing.T) {
-	Constraint(&ForeignKey{}).isConstraint()
 	Constraint(&Check{}).isConstraint()
+	Constraint(&ForeignKey{}).isConstraint()
 }
 
 func TestTableAlteration(t *testing.T) {
 	TableAlteration(&AddColumn{}).isTableAlteration()
-	TableAlteration(&AddTableConstraint{}).isTableAlteration()
 	TableAlteration(&DropColumn{}).isTableAlteration()
+	TableAlteration(&AddTableConstraint{}).isTableAlteration()
 	TableAlteration(&DropConstraint{}).isTableAlteration()
 	TableAlteration(&SetOnDelete{}).isTableAlteration()
 	TableAlteration(&AlterColumn{}).isTableAlteration()
 	TableAlteration(&AlterColumnSet{}).isTableAlteration()
+	TableAlteration(&AddRowDeletionPolicy{}).isTableAlteration()
+	TableAlteration(&DropRowDeletionPolicy{}).isTableAlteration()
+	TableAlteration(&ReplaceRowDeletionPolicy{}).isTableAlteration()
+}
+
+func TestIndexAlteration(t *testing.T) {
+	IndexAlteration(&AddStoredColumn{}).isIndexAlteration()
+	IndexAlteration(&DropStoredColumn{}).isIndexAlteration()
+}
+
+func TestChangeStreamAlteration(t *testing.T) {
+	ChangeStreamAlteration(&ChangeStreamSetFor{}).isChangeStreamAlteration()
+	ChangeStreamAlteration(&ChangeStreamDropForAll{}).isChangeStreamAlteration()
+	ChangeStreamAlteration(&ChangeStreamSetOptions{}).isChangeStreamAlteration()
 }
 
 func TestPrivilege(t *testing.T) {
@@ -170,11 +189,6 @@ func TestSchemaType(t *testing.T) {
 	SchemaType(&ScalarSchemaType{}).isSchemaType()
 	SchemaType(&SizedSchemaType{}).isSchemaType()
 	SchemaType(&ArraySchemaType{}).isSchemaType()
-}
-
-func TestIndexAlteration(t *testing.T) {
-	IndexAlteration(&AddStoredColumn{}).isIndexAlteration()
-	IndexAlteration(&DropStoredColumn{}).isIndexAlteration()
 }
 
 func TestDML(t *testing.T) {

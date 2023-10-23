@@ -53,23 +53,23 @@ type Statement interface {
 func (QueryStatement) isStatement()     {}
 func (CreateDatabase) isStatement()     {}
 func (CreateTable) isStatement()        {}
-func (CreateSequence) isStatement()     {}
-func (CreateView) isStatement()         {}
-func (CreateIndex) isStatement()        {}
-func (CreateRole) isStatement()         {}
 func (AlterTable) isStatement()         {}
-func (AlterIndex) isStatement()         {}
 func (DropTable) isStatement()          {}
+func (CreateIndex) isStatement()        {}
+func (AlterIndex) isStatement()         {}
 func (DropIndex) isStatement()          {}
-func (DropRole) isStatement()           {}
-func (Insert) isStatement()             {}
-func (Delete) isStatement()             {}
-func (Update) isStatement()             {}
-func (Grant) isStatement()              {}
-func (Revoke) isStatement()             {}
+func (CreateView) isStatement()         {}
 func (CreateChangeStream) isStatement() {}
 func (AlterChangeStream) isStatement()  {}
 func (DropChangeStream) isStatement()   {}
+func (CreateRole) isStatement()         {}
+func (DropRole) isStatement()           {}
+func (Grant) isStatement()              {}
+func (Revoke) isStatement()             {}
+func (CreateSequence) isStatement()     {}
+func (Insert) isStatement()             {}
+func (Delete) isStatement()             {}
+func (Update) isStatement()             {}
 
 // QueryExpr represents set operator operands.
 type QueryExpr interface {
@@ -221,20 +221,20 @@ type DDL interface {
 
 func (CreateDatabase) isDDL()     {}
 func (CreateTable) isDDL()        {}
-func (CreateView) isDDL()         {}
-func (CreateSequence) isDDL()     {}
 func (AlterTable) isDDL()         {}
 func (DropTable) isDDL()          {}
 func (CreateIndex) isDDL()        {}
 func (AlterIndex) isDDL()         {}
 func (DropIndex) isDDL()          {}
+func (CreateView) isDDL()         {}
+func (CreateChangeStream) isDDL() {}
+func (AlterChangeStream) isDDL()  {}
+func (DropChangeStream) isDDL()   {}
 func (CreateRole) isDDL()         {}
 func (DropRole) isDDL()           {}
 func (Grant) isDDL()              {}
 func (Revoke) isDDL()             {}
-func (CreateChangeStream) isDDL() {}
-func (AlterChangeStream) isDDL()  {}
-func (DropChangeStream) isDDL()   {}
+func (CreateSequence) isDDL()     {}
 
 // Constraint represents table constraint of CONSTARINT clause.
 type Constraint interface {
@@ -242,8 +242,8 @@ type Constraint interface {
 	isConstraint()
 }
 
-func (ForeignKey) isConstraint() {}
 func (Check) isConstraint()      {}
+func (ForeignKey) isConstraint() {}
 
 // TableAlteration represents ALTER TABLE action.
 type TableAlteration interface {
@@ -252,15 +252,43 @@ type TableAlteration interface {
 }
 
 func (AddColumn) isTableAlteration()                {}
-func (AddTableConstraint) isTableAlteration()       {}
-func (AddRowDeletionPolicy) isTableAlteration()     {}
 func (DropColumn) isTableAlteration()               {}
+func (AddTableConstraint) isTableAlteration()       {}
 func (DropConstraint) isTableAlteration()           {}
-func (DropRowDeletionPolicy) isTableAlteration()    {}
-func (ReplaceRowDeletionPolicy) isTableAlteration() {}
 func (SetOnDelete) isTableAlteration()              {}
 func (AlterColumn) isTableAlteration()              {}
 func (AlterColumnSet) isTableAlteration()           {}
+func (AddRowDeletionPolicy) isTableAlteration()     {}
+func (DropRowDeletionPolicy) isTableAlteration()    {}
+func (ReplaceRowDeletionPolicy) isTableAlteration() {}
+
+// IndexAlteration represents ALTER INDEX action.
+type IndexAlteration interface {
+	Node
+	isIndexAlteration()
+}
+
+func (AddStoredColumn) isIndexAlteration()  {}
+func (DropStoredColumn) isIndexAlteration() {}
+
+// ChangeStreamFor represents FOR clause in CREATE/ALTER CHANGE STREAM statement.
+type ChangeStreamFor interface {
+	Node
+	isChangeStreamFor()
+}
+
+func (ChangeStreamForTables) isChangeStreamFor() {}
+func (ChangeStreamForAll) isChangeStreamFor()    {}
+
+// ChangeStreamAlteration represents ALTER CHANGE STREAM action.
+type ChangeStreamAlteration interface {
+	Node
+	isChangeStreamAlteration()
+}
+
+func (ChangeStreamSetFor) isChangeStreamAlteration()     {}
+func (ChangeStreamDropForAll) isChangeStreamAlteration() {}
+func (ChangeStreamSetOptions) isChangeStreamAlteration() {}
 
 // Privilege represents privileges specified by GRANT and REVOKE.
 type Privilege interface {
@@ -294,15 +322,6 @@ func (ScalarSchemaType) isSchemaType() {}
 func (SizedSchemaType) isSchemaType()  {}
 func (ArraySchemaType) isSchemaType()  {}
 
-// IndexAlteration represents ALTER INDEX action.
-type IndexAlteration interface {
-	Node
-	isIndexAlteration()
-}
-
-func (AddStoredColumn) isIndexAlteration()  {}
-func (DropStoredColumn) isIndexAlteration() {}
-
 // DML represents data manipulation language in SQL.
 //
 // https://cloud.google.com/spanner/docs/data-definition-language
@@ -323,25 +342,6 @@ type InsertInput interface {
 
 func (ValuesInput) isInsertInput()   {}
 func (SubQueryInput) isInsertInput() {}
-
-// ChangeStreamFor represents FOR clause in CREATE/ALTER CHANGE STREAM statement.
-type ChangeStreamFor interface {
-	Node
-	isChangeStreamFor()
-}
-
-func (ChangeStreamForAll) isChangeStreamFor()    {}
-func (ChangeStreamForTables) isChangeStreamFor() {}
-
-// ChangeStreamAlteration represents ALTER CHANGE STREAM action.
-type ChangeStreamAlteration interface {
-	Node
-	isChangeStreamAlteration()
-}
-
-func (ChangeStreamSetFor) isChangeStreamAlteration()     {}
-func (ChangeStreamDropForAll) isChangeStreamAlteration() {}
-func (ChangeStreamSetOptions) isChangeStreamAlteration() {}
 
 // ================================================================================
 //
@@ -1439,21 +1439,6 @@ type CreateTable struct {
 	RowDeletionPolicy *CreateRowDeletionPolicy // optional
 }
 
-// CreateSequence is CREATE SEQUENCE statement node.
-//
-//	CREATE SEQUENCE {{if .IfNotExists}}IF NOT EXISTS{{end}} {{.Name | sql}} }} OPTIONS ({{.Options | sqlJoin ","}})
-type CreateSequence struct {
-	// pos = Create
-	// end = Rparen + 1
-
-	Create token.Pos // position of "CREATE" keyword
-	Rparen token.Pos // position of ")" of OPTIONS clause
-
-	Name        *Ident
-	IfNotExists bool
-	Options     []*SequenceOption // len(Options) > 0
-}
-
 // ColumnDef is column definition in CREATE TABLE.
 //
 //	{{.Name | sql}}
@@ -1524,6 +1509,19 @@ type TableConstraint struct {
 	Constraint Constraint
 }
 
+// Check is check constraint in CREATE TABLE and ALTER TABLE.
+//
+//	Check ({{.Expr}})
+type Check struct {
+	// pos = Check
+	// end = Rparen + 1
+
+	Check  token.Pos // position of "CHECK" keyword
+	Rparen token.Pos // position of ")" after Expr
+
+	Expr Expr
+}
+
 // ForeignKey is foreign key specifier in CREATE TABLE and ALTER TABLE.
 //
 //	FOREIGN KEY ({{.ColumnNames | sqlJoin ","}}) REFERENCES {{.ReferenceTable}} ({{.ReferenceColumns | sqlJoin ","}}) {{.OnDelete}}
@@ -1539,19 +1537,6 @@ type ForeignKey struct {
 	ReferenceTable   *Ident
 	ReferenceColumns []*Ident       // len(ReferenceColumns) > 0
 	OnDelete         OnDeleteAction // optional
-}
-
-// Check is check constraint in CREATE TABLE and ALTER TABLE.
-//
-//	Check ({{.Expr}})
-type Check struct {
-	// pos = Check
-	// end = Rparen + 1
-
-	Check  token.Pos // position of "CHECK" keyword
-	Rparen token.Pos // position of ")" after Expr
-
-	Expr Expr
 }
 
 // IndexKey is index key specifier in CREATE TABLE and CREATE INDEX.
@@ -1607,23 +1592,6 @@ type RowDeletionPolicy struct {
 	NumDays    *IntLiteral
 }
 
-// CreateView is CREATE VIEW statement node.
-//
-//	CREATE {{if .OrReplace}}OR REPLACE{{end}} VIEW {{.Name | sql}}
-//	SQL SECURITY {{.SecurityType}} AS
-//	{{.Query | sql}}
-type CreateView struct {
-	// pos = Create
-	// end = Query.end
-
-	Create token.Pos
-
-	Name         *Ident
-	OrReplace    bool
-	SecurityType SecurityType
-	Query        QueryExpr
-}
-
 // AlterTable is ALTER TABLE statement node.
 //
 //	ALTER TABLE {{.Name | sql}} {{.TableAlteration | sql}}
@@ -1633,34 +1601,8 @@ type AlterTable struct {
 
 	Alter token.Pos // position of "ALTER" keyword
 
-	Name             *Ident
+	Name            *Ident
 	TableAlteration TableAlteration
-}
-
-// AlterIndex is ALTER INDEX statement node.
-//
-//	ALTER INDEX {{.Name | sql}} {{.IndexAlteration | sql}}
-type AlterIndex struct {
-	// pos = Alter
-	// end = IndexAlteration.end
-
-	Alter token.Pos // position of "ALTER" keyword
-
-	Name             *Ident
-	IndexAlteration IndexAlteration
-}
-
-// AlterChangeStream is ALTER CHANGE STREAM statement node.
-//
-//	ALTER CHANGE STREAM {{.Name | sql}} {{.ChangeStreamAlteration | sql}}
-type AlterChangeStream struct {
-	// pos = Alter
-	// end = ChangeStreamAlteration.end
-
-	Alter token.Pos // position of "ALTER" keyword
-
-	Name                    *Ident
-	ChangeStreamAlteration ChangeStreamAlteration
 }
 
 // AddColumn is ADD COLUMN clause in ALTER TABLE.
@@ -1676,30 +1618,6 @@ type AddColumn struct {
 	Column      *ColumnDef
 }
 
-// AddTableConstraint is ADD table_constraint clause in ALTER TABLE.
-//
-//	ADD {{.TableConstraint}}
-type AddTableConstraint struct {
-	// pos = Add
-	// end = Constraint.end
-
-	Add token.Pos // position of "ADD" keyword
-
-	TableConstraint *TableConstraint
-}
-
-// AddRowDeletionPolicy is ADD ROW DELETION POLICY clause in ALTER TABLE.
-//
-//	ADD {{.RowDeletionPolicy | sql}}
-type AddRowDeletionPolicy struct {
-	// pos = Add
-	// end = RowDeletionPolicy.end
-
-	Add token.Pos // position of "ADD" keyword
-
-	RowDeletionPolicy *RowDeletionPolicy
-}
-
 // DropColumn is DROP COLUMN clause in ALTER TABLE.
 //
 //	DROP COLUMN {{.Name | sql}}
@@ -1712,6 +1630,18 @@ type DropColumn struct {
 	Name *Ident
 }
 
+// AddTableConstraint is ADD table_constraint clause in ALTER TABLE.
+//
+//	ADD {{.TableConstraint}}
+type AddTableConstraint struct {
+	// pos = Add
+	// end = Constraint.end
+
+	Add token.Pos // position of "ADD" keyword
+
+	TableConstraint *TableConstraint
+}
+
 // DropConstraint is DROP CONSTRAINT clause in ALTER TABLE.
 //
 //	DROP CONSTRAINT {{.Name | sql}}
@@ -1722,29 +1652,6 @@ type DropConstraint struct {
 	Drop token.Pos // position of  "DROP" keyword
 
 	Name *Ident
-}
-
-// DropRowDeletionPolicy is DROP ROW DELETION POLICY clause in ALTER TABLE.
-//
-//	DROP ROW DELETION POLICY
-type DropRowDeletionPolicy struct {
-	// pos = Drop
-	// end = Policy + 6
-
-	Drop   token.Pos // position of  "DROP" keyword
-	Policy token.Pos // position of  "POLICY" keyword
-}
-
-// ReplaceRowDeletionPolicy is REPLACE ROW DELETION POLICY clause in ALTER TABLE.
-//
-//	REPLACE {{.RowDeletionPolicy}}
-type ReplaceRowDeletionPolicy struct {
-	// pos = Replace
-	// end = RowDeletionPolicy.end
-
-	Replace token.Pos // position of  "REPLACE" keyword
-
-	RowDeletionPolicy *RowDeletionPolicy
 }
 
 // SetOnDelete is SET ON DELETE clause in ALTER TABLE.
@@ -1789,6 +1696,41 @@ type AlterColumnSet struct {
 	DefaultExpr *ColumnDefaultExpr
 }
 
+// AddRowDeletionPolicy is ADD ROW DELETION POLICY clause in ALTER TABLE.
+//
+//	ADD {{.RowDeletionPolicy | sql}}
+type AddRowDeletionPolicy struct {
+	// pos = Add
+	// end = RowDeletionPolicy.end
+
+	Add token.Pos // position of "ADD" keyword
+
+	RowDeletionPolicy *RowDeletionPolicy
+}
+
+// DropRowDeletionPolicy is DROP ROW DELETION POLICY clause in ALTER TABLE.
+//
+//	DROP ROW DELETION POLICY
+type DropRowDeletionPolicy struct {
+	// pos = Drop
+	// end = Policy + 6
+
+	Drop   token.Pos // position of  "DROP" keyword
+	Policy token.Pos // position of  "POLICY" keyword
+}
+
+// ReplaceRowDeletionPolicy is REPLACE ROW DELETION POLICY clause in ALTER TABLE.
+//
+//	REPLACE {{.RowDeletionPolicy}}
+type ReplaceRowDeletionPolicy struct {
+	// pos = Replace
+	// end = RowDeletionPolicy.end
+
+	Replace token.Pos // position of  "REPLACE" keyword
+
+	RowDeletionPolicy *RowDeletionPolicy
+}
+
 // DropTable is DROP TABLE statement node.
 //
 //	DROP TABLE {{if .IfExists}}IF NOT EXISTS{{end}} {{.Name | sql}}
@@ -1827,6 +1769,98 @@ type CreateIndex struct {
 	Keys         []*IndexKey
 	Storing      *Storing      // optional
 	InterleaveIn *InterleaveIn // optional
+}
+
+// Storing is STORING clause in CREATE INDEX.
+//
+//	STORING ({{.Columns | sqlJoin ","}})
+type Storing struct {
+	// pos = Storing
+	// end = Rparen + 1
+
+	Storing token.Pos // position of "STORING" keyword
+	Rparen  token.Pos // position of ")"
+
+	Columns []*Ident
+}
+
+// InterleaveIn is INTERLEAVE IN clause in CREATE INDEX.
+//
+//	, INTERLEAVE IN {{.TableName | sql}}
+type InterleaveIn struct {
+	// pos = Comma
+	// end = TableName.end
+
+	Comma token.Pos // position of ","
+
+	TableName *Ident
+}
+
+// AlterIndex is ALTER INDEX statement node.
+//
+//	ALTER INDEX {{.Name | sql}} {{.IndexAlteration | sql}}
+type AlterIndex struct {
+	// pos = Alter
+	// end = IndexAlteration.end
+
+	Alter token.Pos // position of "ALTER" keyword
+
+	Name            *Ident
+	IndexAlteration IndexAlteration
+}
+
+// AddStoredColumn is ADD STORED COLUMN clause in ALTER INDEX.
+//
+//	ADD STORED COLUMN {{.Name | sql}}
+type AddStoredColumn struct {
+	// pos = Add
+	// end = Name.end
+
+	Add token.Pos // position of "ADD" keyword
+
+	Name *Ident
+}
+
+// DropStoredColumn is DROP STORED COLUMN clause in ALTER INDEX.
+//
+//	DROP STORED COLUMN {{.Name | sql}}
+type DropStoredColumn struct {
+	// pos = Drop
+	// end = Name.end
+
+	Drop token.Pos // position of "DROP" keyword
+
+	Name *Ident
+}
+
+// DropIndex is DROP INDEX statement node.
+//
+//	DROP INDEX {{if .IfExists}}IF EXISTS{{end}} {{.Name | sql}}
+type DropIndex struct {
+	// pos = Drop
+	// end = Name.end
+
+	Drop token.Pos // position of "DROP" keyword
+
+	IfExists bool
+	Name     *Ident
+}
+
+// CreateView is CREATE VIEW statement node.
+//
+//	CREATE {{if .OrReplace}}OR REPLACE{{end}} VIEW {{.Name | sql}}
+//	SQL SECURITY {{.SecurityType}} AS
+//	{{.Query | sql}}
+type CreateView struct {
+	// pos = Create
+	// end = Query.end
+
+	Create token.Pos
+
+	Name         *Ident
+	OrReplace    bool
+	SecurityType SecurityType
+	Query        QueryExpr
 }
 
 // CreateChangeStream is CREATE CHANGE STREAM statement node.
@@ -1903,6 +1937,19 @@ type ChangeStreamOptionsRecord struct {
 	Value Expr
 }
 
+// AlterChangeStream is ALTER CHANGE STREAM statement node.
+//
+//	ALTER CHANGE STREAM {{.Name | sql}} {{.ChangeStreamAlteration | sql}}
+type AlterChangeStream struct {
+	// pos = Alter
+	// end = ChangeStreamAlteration.end
+
+	Alter token.Pos // position of "ALTER" keyword
+
+	Name                   *Ident
+	ChangeStreamAlteration ChangeStreamAlteration
+}
+
 // ChangeStreamSetFor is SET FOR tables node in ALTER CHANGE STREAM
 //
 //	SET FOR {{.For | sql}}
@@ -1938,66 +1985,16 @@ type ChangeStreamSetOptions struct {
 	Options *ChangeStreamOptions
 }
 
-// Storing is STORING clause in CREATE INDEX.
+// DropChangeStream is DROP CHANGE STREAM  statement node.
 //
-//	STORING ({{.Columns | sqlJoin ","}})
-type Storing struct {
-	// pos = Storing
-	// end = Rparen + 1
-
-	Storing token.Pos // position of "STORING" keyword
-	Rparen  token.Pos // position of ")"
-
-	Columns []*Ident
-}
-
-// InterleaveIn is INTERLEAVE IN clause in CREATE INDEX.
-//
-//	, INTERLEAVE IN {{.TableName | sql}}
-type InterleaveIn struct {
-	// pos = Comma
-	// end = TableName.end
-
-	Comma token.Pos // position of ","
-
-	TableName *Ident
-}
-
-// AddStoredColumn is ADD STORED COLUMN clause in ALTER INDEX.
-//
-//	ADD STORED COLUMN {{.Name | sql}}
-type AddStoredColumn struct {
-	// pos = Add
-	// end = Name.end
-
-	Add token.Pos // position of "ADD" keyword
-
-	Name *Ident
-}
-
-// DropStoredColumn is DROP STORED COLUMN clause in ALTER INDEX.
-//
-//	DROP STORED COLUMN {{.Name | sql}}
-type DropStoredColumn struct {
+//	DROP CHANGE STREAM {{.Name | sql}}
+type DropChangeStream struct {
 	// pos = Drop
 	// end = Name.end
 
 	Drop token.Pos // position of "DROP" keyword
 
 	Name *Ident
-}
-
-// DropIndex is DROP INDEX statement node.
-//
-//	DROP INDEX {{if .IfExists}}IF EXISTS{{end}} {{.Name | sql}}
-type DropIndex struct {
-	// pos = Drop
-	// end = Name.end
-
-	Drop token.Pos // position of "DROP" keyword
-
-	IfExists bool
-	Name     *Ident
 }
 
 // CreateRole is CREATE ROLE statement node.
@@ -2016,18 +2013,6 @@ type CreateRole struct {
 //
 //	DROP ROLE {{.Name | sql}}
 type DropRole struct {
-	// pos = Drop
-	// end = Name.end
-
-	Drop token.Pos // position of "DROP" keyword
-
-	Name *Ident
-}
-
-// DropChangeStream is DROP CHANGE STREAM  statement node.
-//
-//	DROP CHANGE STREAM {{.Name | sql}}
-type DropChangeStream struct {
 	// pos = Drop
 	// end = Name.end
 
@@ -2071,6 +2056,42 @@ type PrivilegeOnTable struct {
 
 	Privileges []TablePrivilege // len(Privileges) > 0
 	Names      []*Ident         // len(Names) > 0
+}
+
+// SelectPrivilegeOnView is SELECT ON VIEW privilege node in GRANT and REVOKE.
+//
+//	SELECT ON VIEW {{.Names | sqlJoin ","}}
+type SelectPrivilegeOnView struct {
+	// pos = Select
+	// end = Name[$].end
+
+	Select token.Pos
+
+	Names []*Ident // len(Names) > 0
+}
+
+// ExecutePrivilegeOnTableFunction is EXECUTE ON TABLE FUNCTION privilege node in GRANT and REVOKE.
+//
+//	EXECUTE ON TABLE FUNCTION {{.Names | sqlJoin ","}}
+type ExecutePrivilegeOnTableFunction struct {
+	// pos = Execute
+	// end = Names[$].end
+
+	Execute token.Pos
+
+	Names []*Ident // len(Names) > 0
+}
+
+// RolePrivilege is ROLE privilege node in GRANT and REVOKE.
+//
+//	ROLE {{.Names | sqlJoin ","}}
+type RolePrivilege struct {
+	// pos = Role
+	// end = Names[$].end
+
+	Role token.Pos
+
+	Names []*Ident // len(Names) > 0
 }
 
 // SelectPrivilege is SELECT ON TABLE privilege node in GRANT and REVOKE.
@@ -2122,40 +2143,30 @@ type DeletePrivilege struct {
 	Delete token.Pos // position of "DELETE" keyword
 }
 
-// SelectPrivilegeOnView is SELECT ON VIEW privilege node in GRANT and REVOKE.
+// CreateSequence is CREATE SEQUENCE statement node.
 //
-//	SELECT ON VIEW {{.Names | sqlJoin ","}}
-type SelectPrivilegeOnView struct {
-	// pos = Select
-	// end = Name[$].end
+//	CREATE SEQUENCE {{if .IfNotExists}}IF NOT EXISTS{{end}} {{.Name | sql}} }} OPTIONS ({{.Options | sqlJoin ","}})
+type CreateSequence struct {
+	// pos = Create
+	// end = Rparen + 1
 
-	Select token.Pos
+	Create token.Pos // position of "CREATE" keyword
+	Rparen token.Pos // position of ")" of OPTIONS clause
 
-	Names []*Ident // len(Names) > 0
+	Name        *Ident
+	IfNotExists bool
+	Options     []*SequenceOption // len(Options) > 0
 }
 
-// ExecutePrivilegeOnTableFunction is EXECUTE ON TABLE FUNCTION privilege node in GRANT and REVOKE.
+// SequenceOption is option for CREATE SEQUENCE.
 //
-//	EXECUTE ON TABLE FUNCTION {{.Names | sqlJoin ","}}
-type ExecutePrivilegeOnTableFunction struct {
-	// pos = Execute
-	// end = Names[$].end
+//	{{.Name | sql}} = {{.Value | sql}}
+type SequenceOption struct {
+	// pos = Name.pos
+	// end = Value.end
 
-	Execute token.Pos
-
-	Names []*Ident // len(Names) > 0
-}
-
-// RolePrivilege is ROLE privilege node in GRANT and REVOKE.
-//
-//	ROLE {{.Names | sqlJoin ","}}
-type RolePrivilege struct {
-	// pos = Role
-	// end = Names[$].end
-
-	Role token.Pos
-
-	Names []*Ident // len(Names) > 0
+	Name  *Ident
+	Value Expr
 }
 
 // ================================================================================
@@ -2311,15 +2322,4 @@ type UpdateItem struct {
 
 	Path []*Ident // len(Path) > 0
 	Expr Expr
-}
-
-// SequenceOption is option for CREATE SEQUENCE.
-//
-//	{{.Name | sql}} = {{.Value | sql}}
-type SequenceOption struct {
-	// pos = Name.pos
-	// end = Value.end
-
-	Name  *Ident
-	Value Expr
 }
