@@ -62,7 +62,7 @@ ON a.id = g.v
         Op:    "INNER JOIN",
         Right: &ast.GraphTableExpr{
           GraphTable: 41,
-          RParen:     86,
+          Rparen:     86,
           GraphName:  &ast.Path{
             Idents: []*ast.Ident{
               &ast.Ident{

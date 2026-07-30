@@ -1221,7 +1221,7 @@ func (p *Parser) parseSimpleTableExpr() ast.TableExpr {
 			GraphTable: graphTable,
 			GraphName:  graphName,
 			Query:      query,
-			RParen:     rparen,
+			Rparen:     rparen,
 			As:         as,
 		})
 	}
@@ -1280,7 +1280,7 @@ func (p *Parser) parseGraphTableColumns() *ast.GraphTableColumns {
 	rparen := p.expect(")").Pos
 	return &ast.GraphTableColumns{
 		Columns: columns,
-		RParen:  rparen,
+		Rparen:  rparen,
 		Items:   items,
 	}
 }

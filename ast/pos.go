@@ -2339,7 +2339,7 @@ func (g *GraphTableExpr) Pos() token.Pos {
 }
 
 func (g *GraphTableExpr) End() token.Pos {
-	return posChoice(nodeEnd(nodeChoice(wrapNode(g.Sample), wrapNode(g.As))), posAdd(g.RParen, 1))
+	return posChoice(nodeEnd(nodeChoice(wrapNode(g.Sample), wrapNode(g.As))), posAdd(g.Rparen, 1))
 }
 
 func (g *GraphTableMatch) Pos() token.Pos {
@@ -2355,7 +2355,7 @@ func (g *GraphTableColumns) Pos() token.Pos {
 }
 
 func (g *GraphTableColumns) End() token.Pos {
-	return posAdd(g.RParen, 1)
+	return posAdd(g.Rparen, 1)
 }
 
 func (g *GQLGraphQuery) Pos() token.Pos {

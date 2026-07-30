@@ -13,7 +13,7 @@ SELECT * FROM GRAPH_TABLE (schema.FinGraph FILTER WHERE TRUE RETURN 1 AS v) AS t
       From:   9,
       Source: &ast.GraphTableExpr{
         GraphTable: 14,
-        RParen:     74,
+        Rparen:     74,
         GraphName:  &ast.Path{
           Idents: []*ast.Ident{
             &ast.Ident{

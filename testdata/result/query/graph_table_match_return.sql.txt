@@ -17,7 +17,7 @@ SELECT id FROM GRAPH_TABLE (FinGraph MATCH (n:Person) RETURN n.id AS id)
       From:   10,
       Source: &ast.GraphTableExpr{
         GraphTable: 15,
-        RParen:     71,
+        Rparen:     71,
         GraphName:  &ast.Path{
           Idents: []*ast.Ident{
             &ast.Ident{

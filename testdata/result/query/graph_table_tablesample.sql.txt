@@ -18,7 +18,7 @@ FROM GRAPH_TABLE(
       From:   9,
       Source: &ast.GraphTableExpr{
         GraphTable: 14,
-        RParen:     66,
+        Rparen:     66,
         GraphName:  &ast.Path{
           Idents: []*ast.Ident{
             &ast.Ident{

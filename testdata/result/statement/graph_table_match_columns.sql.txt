@@ -24,7 +24,7 @@ SELECT name, number FROM GRAPH_TABLE (FinGraph MATCH (n:Person) COLUMNS (n.name 
       From:   20,
       Source: &ast.GraphTableExpr{
         GraphTable: 25,
-        RParen:     101,
+        Rparen:     101,
         GraphName:  &ast.Path{
           Idents: []*ast.Ident{
             &ast.Ident{
@@ -76,7 +76,7 @@ SELECT name, number FROM GRAPH_TABLE (FinGraph MATCH (n:Person) COLUMNS (n.name 
           },
           Columns: &ast.GraphTableColumns{
             Columns: 64,
-            RParen:  100,
+            Rparen:  100,
             Items:   []ast.SelectItem{
               &ast.Alias{
                 Expr: &ast.Path{

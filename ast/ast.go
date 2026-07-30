@@ -4674,10 +4674,10 @@ func (GraphTableMatch) isGraphTableQuery()              {}
 //	GRAPH_TABLE({{.GraphName | sql}} {{.Query | sql}}) {{.As | sqlOpt}} {{.Sample | sqlOpt}}
 type GraphTableExpr struct {
 	// pos = GraphTable
-	// end = (Sample ?? As).end || RParen + 1
+	// end = (Sample ?? As).end || Rparen + 1
 
 	GraphTable token.Pos // position of "GRAPH_TABLE"
-	RParen     token.Pos // position of ")"
+	Rparen     token.Pos // position of ")"
 
 	GraphName *Path
 	Query     GraphTableQuery
@@ -4701,10 +4701,10 @@ type GraphTableMatch struct {
 //	COLUMNS({{.Items | sqlJoin ", "}})
 type GraphTableColumns struct {
 	// pos = Columns
-	// end = RParen + 1
+	// end = Rparen + 1
 
 	Columns token.Pos // position of "COLUMNS"
-	RParen  token.Pos // position of ")"
+	Rparen  token.Pos // position of ")"
 
 	Items []SelectItem // len(Items) > 0
 }

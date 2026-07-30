@@ -13,7 +13,7 @@ SELECT * FROM GRAPH_TABLE (FinGraph MATCH (n:Person) COLUMNS (n.*, 1 AS number))
       From:   9,
       Source: &ast.GraphTableExpr{
         GraphTable: 14,
-        RParen:     79,
+        Rparen:     79,
         GraphName:  &ast.Path{
           Idents: []*ast.Ident{
             &ast.Ident{
@@ -65,7 +65,7 @@ SELECT * FROM GRAPH_TABLE (FinGraph MATCH (n:Person) COLUMNS (n.*, 1 AS number))
           },
           Columns: &ast.GraphTableColumns{
             Columns: 53,
-            RParen:  78,
+            Rparen:  78,
             Items:   []ast.SelectItem{
               &ast.DotStar{
                 Star: 64,
