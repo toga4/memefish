@@ -189,6 +189,7 @@ func (SubQueryTableExpr) isTableExpr() {}
 func (ParenTableExpr) isTableExpr()    {}
 func (Join) isTableExpr()              {}
 func (TVFCallExpr) isTableExpr()       {}
+func (GraphTableExpr) isTableExpr()    {}
 
 // JoinCondition represents condition part of JOIN expression.
 type JoinCondition interface {
@@ -4689,6 +4690,55 @@ func (GQLOrderBy) isGQLPrimitiveQueryStatement()                    {}
 func (GQLLimit) isGQLPrimitiveQueryStatement()                      {}
 func (GQLOffset) isGQLPrimitiveQueryStatement()                     {}
 func (BadGQLPrimitiveQueryStatement) isGQLPrimitiveQueryStatement() {}
+
+// GraphTableQuery represents a query body in a GRAPH_TABLE operator.
+type GraphTableQuery interface {
+	Node
+	isGraphTableQuery()
+}
+
+func (GQLMultiLinearQueryStatement) isGraphTableQuery() {}
+func (GraphTableMatch) isGraphTableQuery()              {}
+
+// GraphTableExpr represents GRAPH_TABLE operator in SQL.
+//
+//	GRAPH_TABLE({{.GraphName | sql}} {{.Query | sql}}) {{.As | sqlOpt}} {{.Sample | sqlOpt}}
+type GraphTableExpr struct {
+	// pos = GraphTable
+	// end = (Sample ?? As).end || Rparen + 1
+
+	GraphTable token.Pos // position of "GRAPH_TABLE"
+	Rparen     token.Pos // position of ")"
+
+	GraphName *Path
+	Query     GraphTableQuery
+	As        *AsAlias     // optional
+	Sample    *TableSample // optional
+}
+
+// GraphTableMatch represents the SQL/PGQ form of a GRAPH_TABLE query.
+//
+//	{{.Match | sql}} {{.Columns | sqlOpt}}
+type GraphTableMatch struct {
+	// pos = Match.pos
+	// end = (Columns ?? Match).end
+
+	Match   *GQLMatch
+	Columns *GraphTableColumns // optional
+}
+
+// GraphTableColumns is a COLUMNS shape clause in a GRAPH_TABLE query.
+//
+//	COLUMNS({{.Items | sqlJoin ", "}})
+type GraphTableColumns struct {
+	// pos = Columns
+	// end = Rparen + 1
+
+	Columns token.Pos // position of "COLUMNS"
+	Rparen  token.Pos // position of ")"
+
+	Items []SelectItem // len(Items) > 0
+}
 
 // GQLGraphQuery is a top-level GQL query.
 //
