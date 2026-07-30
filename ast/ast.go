@@ -4671,7 +4671,7 @@ func (GraphTableMatch) isGraphTableQuery()              {}
 
 // GraphTableExpr represents GRAPH_TABLE operator in SQL.
 //
-//	GRAPH_TABLE({{.GraphName | sql}} {{.Query | sql}}){{sqlOpt " " .As ""}}{{sqlOpt " " .Sample ""}}
+//	GRAPH_TABLE({{.GraphName | sql}} {{.Query | sql}}){{if .As}} {{.As | sql}}{{end}}{{if .Sample}} {{.Sample | sql}}{{end}}
 type GraphTableExpr struct {
 	// pos = GraphTable
 	// end = (Sample ?? As).end || RParen + 1
