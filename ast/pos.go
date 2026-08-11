@@ -478,6 +478,14 @@ func (i *IsBoolExpr) End() token.Pos {
 	return posAdd(i.RightPos, ifThenElse(i.Right, 4, 5))
 }
 
+func (i *IsUnknownExpr) Pos() token.Pos {
+	return nodePos(wrapNode(i.Left))
+}
+
+func (i *IsUnknownExpr) End() token.Pos {
+	return posAdd(i.Unknown, 7)
+}
+
 func (i *IsSourceExpr) Pos() token.Pos {
 	return nodePos(wrapNode(i.Left))
 }

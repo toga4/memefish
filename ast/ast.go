@@ -212,6 +212,7 @@ func (UnaryExpr) isExpr()             {}
 func (InExpr) isExpr()                {}
 func (IsNullExpr) isExpr()            {}
 func (IsBoolExpr) isExpr()            {}
+func (IsUnknownExpr) isExpr()         {}
 func (IsSourceExpr) isExpr()          {}
 func (IsDestinationExpr) isExpr()     {}
 func (IsLabeledExpr) isExpr()         {}
@@ -1436,6 +1437,19 @@ type IsBoolExpr struct {
 	Not   bool
 	Left  Expr
 	Right bool
+}
+
+// IsUnknownExpr is IS UNKNOWN expression node.
+//
+//	{{.Left | sql}} IS {{if .Not}}NOT{{end}} UNKNOWN
+type IsUnknownExpr struct {
+	// pos = Left.pos
+	// end = Unknown + 7
+
+	Unknown token.Pos // position of "UNKNOWN"
+
+	Not  bool
+	Left Expr
 }
 
 // IsSourceExpr is IS SOURCE [OF] expression node.
