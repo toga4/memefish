@@ -225,6 +225,9 @@ func walkInternal(node Node, v Visitor, stack []*stackItem) []*stackItem {
 	case *IsBoolExpr:
 		stack = append(stack, &stackItem{node: wrapNode(n.Left), visitor: v.Field("Left")})
 
+	case *IsUnknownExpr:
+		stack = append(stack, &stackItem{node: wrapNode(n.Left), visitor: v.Field("Left")})
+
 	case *IsSourceExpr:
 		stack = append(stack, &stackItem{node: wrapNode(n.Right), visitor: v.Field("Right")})
 		stack = append(stack, &stackItem{node: wrapNode(n.Left), visitor: v.Field("Left")})

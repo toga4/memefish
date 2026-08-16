@@ -1679,6 +1679,13 @@ func (p *Parser) parseComparison() ast.Expr {
 			}
 		case token.TokenIdent:
 			switch {
+			case p.Token.IsKeywordLike("UNKNOWN"):
+				p.nextToken()
+				return &ast.IsUnknownExpr{
+					Unknown: pos,
+					Left:    expr,
+					Not:     not,
+				}
 			case p.Token.IsKeywordLike("SOURCE") || p.Token.IsKeywordLike("DESTINATION"):
 				isSource := p.Token.IsKeywordLike("SOURCE")
 				p.nextToken()
@@ -1711,7 +1718,7 @@ func (p *Parser) parseComparison() ast.Expr {
 				}
 			}
 		}
-		p.panicfAtToken(&p.Token, "expected token: NULL, TRUE, FALSE, SOURCE, DESTINATION, LABELED, but: %s", p.Token.Kind)
+		p.panicfAtToken(&p.Token, "expected token: NULL, TRUE, FALSE, UNKNOWN, SOURCE, DESTINATION, LABELED, but: %s", p.Token.Kind)
 	default:
 		return expr
 	}
